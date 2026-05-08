@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【异环】节奏榜编辑器 - 修正导出版</title>
+    <title>【异环】节奏榜编辑器 - 导出增强版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -71,7 +71,7 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
-        /* --- 修正后的标签样式 --- */
+        /* --- 终极修复：标签样式 --- */
         .custom-tag {
             position: absolute;
             top: 2px;
@@ -80,34 +80,42 @@
             font-weight: 900;
             z-index: 10;
             
-            /* 强制 Flex 居中解决错位 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            /* 弃用 Flex 居中，改用严格行高 */
+            display: block;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
             
             background: var(--yh-cyan);
             box-shadow: -2px 2px 0 #000;
+            /* 保持裁切 */
             clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
             
-            /* PC端高度与字体 */
+            /* PC端规格 */
             font-size: 22px; 
-            height: 30px; 
-            padding: 0 10px;
-            line-height: 1; 
-            min-width: 50px;
+            height: 32px; 
+            line-height: 34px; /* 修正：行高略大于高度，补偿截图时的上偏移 */
+            padding: 0 12px;
+            min-width: 60px;
         }
 
-        /* 梯度行内的标签（缩小版） */
+        /* 梯度行内的缩小版标签 */
         .drag-zone .custom-tag { 
             font-size: 14px; 
             height: 20px; 
+            line-height: 22px; /* 同样做 2px 的视觉补偿 */
             padding: 0 6px; 
             top: 1px;
             right: 1px;
+            min-width: 40px;
         }
 
         /* 空标签隐藏 */
-        .custom-tag.is-empty { background: transparent !important; box-shadow: none !important; clip-path: none !important; }
+        .custom-tag.is-empty { 
+            background: transparent !important; 
+            box-shadow: none !important; 
+            clip-path: none !important; 
+        }
 
         .drag-zone {
             display: flex;
@@ -117,37 +125,37 @@
             align-items: center;
         }
 
-        /* --- 手机端适配 --- */
+        /* --- 响应式适配 --- */
         @media (max-width: 640px) {
             .tier-row { grid-template-columns: 55px 1fr; padding: 5px; }
             .tier-label-box span { font-size: 1.5rem !important; }
             .drag-zone .char-card { width: 75px !important; height: 60px !important; }
             .char-card { width: 90px !important; height: 72px !important; }
             
-            /* 手机端标签高度补正 */
             .custom-tag {
-                font-size: 11px !important;
-                height: 16px !important;
-                padding: 0 4px !important;
-                min-width: 30px !important;
+                font-size: 12px !important;
+                height: 18px !important;
+                line-height: 20px !important;
+                padding: 0 6px !important;
+                min-width: 34px !important;
             }
             .drag-zone .custom-tag {
-                font-size: 9px !important;
+                font-size: 10px !important;
                 height: 14px !important;
+                line-height: 16px !important;
             }
             .mobile-stack { flex-direction: column; align-items: flex-start !important; gap: 0.5rem !important; }
         }
 
-        [contenteditable="true"]:focus { outline: none; background: rgba(0, 242, 255, 0.2); }
+        [contenteditable="true"]:focus { outline: none; background: rgba(0, 242, 255, 0.2); border-radius: 2px; }
     </style>
 </head>
 <body class="p-2 md:p-4">
 
     <input type="file" id="manual-upload" accept="image/*" multiple class="hidden" onchange="handleManualUpload(this)">
 
-    <!-- 保存图片区域 -->
     <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
-        
+        <!-- 还原经典版头 -->
         <div class="mb-4 pb-4 border-b border-gray-800">
             <h1 contenteditable="true" class="text-3xl md:text-5xl font-black italic text-white uppercase tracking-tighter leading-none mb-3">
                 【异环】节奏榜
@@ -258,11 +266,15 @@
         }
 
         function handleTagLogic(el) {
-            const text = el.innerText.trim();
+            // 自动清理多余的回车换行，防止撑开高度
+            const text = el.innerText.replace(/\n/g, '').trim();
+            if (el.innerText !== text) el.innerText = text;
+
             if (text === "") el.classList.add('is-empty');
             else el.classList.remove('is-empty');
-            if (el.innerText.length > 5) {
-                el.innerText = el.innerText.substring(0, 5);
+
+            if (text.length > 5) {
+                el.innerText = text.substring(0, 5);
                 const range = document.createRange();
                 const sel = window.getSelection();
                 if (el.childNodes.length > 0) {
@@ -276,31 +288,25 @@
         }
 
         document.querySelectorAll('.drag-zone').forEach(zone => {
-            new Sortable(zone, { 
-                group: 'shared', 
-                animation: 150, 
-                ghostClass: 'opacity-10', 
-                forceFallback: true,
-                onEnd: function() {
-                    // 拖拽结束后强制刷新所有标签状态，防止克隆出来的节点UI异常
-                    document.querySelectorAll('.custom-tag').forEach(tag => handleTagLogic(tag));
-                }
-            });
+            new Sortable(zone, { group: 'shared', animation: 150, ghostClass: 'opacity-10', forceFallback: true });
         });
 
         async function exportImage() {
             const area = document.getElementById('capture-area');
+            
+            // 截图前强制失去焦点，隐藏光标和输入状态
+            if (document.activeElement) document.activeElement.blur();
+
             const canvas = await html2canvas(area, { 
                 backgroundColor: '#0a0a0a', 
                 scale: 2, 
                 useCORS: true,
                 logging: false,
-                // 解决 iOS/Chrome 移动端可能出现的偏移
-                scrollX: 0,
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.offsetHeight
+                // 提高渲染质量的参数
+                imageTimeout: 0,
+                removeContainer: true
             });
+            
             const link = document.createElement('a');
             link.download = `异环节奏榜_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
