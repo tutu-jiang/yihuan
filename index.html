@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【异环】节奏榜编辑器</title>
+    <title>【异环】节奏榜编辑器 - 修正导出版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -22,7 +22,7 @@
             user-select: none;
         }
 
-        /* --- PC 端布局样式 --- */
+        /* --- 基础布局 --- */
         .tier-row {
             display: grid;
             grid-template-columns: 80px 1fr;
@@ -71,6 +71,7 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
+        /* --- 修正后的标签样式 --- */
         .custom-tag {
             position: absolute;
             top: 2px;
@@ -78,18 +79,34 @@
             color: #000;
             font-weight: 900;
             z-index: 10;
-            transition: all 0.2s ease;
-            font-size: 22px; 
-            padding: 2px 8px;
+            
+            /* 强制 Flex 居中解决错位 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
             background: var(--yh-cyan);
             box-shadow: -2px 2px 0 #000;
             clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
-            min-width: 10px;
-            text-align: center;
-            line-height: 1.1;
+            
+            /* PC端高度与字体 */
+            font-size: 22px; 
+            height: 30px; 
+            padding: 0 10px;
+            line-height: 1; 
+            min-width: 50px;
         }
 
-        .drag-zone .custom-tag { font-size: 16px; padding: 1px 6px; }
+        /* 梯度行内的标签（缩小版） */
+        .drag-zone .custom-tag { 
+            font-size: 14px; 
+            height: 20px; 
+            padding: 0 6px; 
+            top: 1px;
+            right: 1px;
+        }
+
+        /* 空标签隐藏 */
         .custom-tag.is-empty { background: transparent !important; box-shadow: none !important; clip-path: none !important; }
 
         .drag-zone {
@@ -100,48 +117,28 @@
             align-items: center;
         }
 
-        /* --- 手机端适配 (屏幕宽度 < 640px) --- */
+        /* --- 手机端适配 --- */
         @media (max-width: 640px) {
-            .tier-row {
-                grid-template-columns: 55px 1fr; /* 缩小梯度标签宽度 */
-                padding: 5px;
-            }
-            .tier-label-box span {
-                font-size: 1.5rem !important; /* 缩小 T0 文字 */
-            }
-            /* 手机端梯度内头像等比缩小至 75px */
-            .drag-zone .char-card {
-                width: 75px !important;
-                height: 60px !important;
-            }
-            /* 手机端角色池头像缩小至 90px */
-            .char-card {
-                width: 90px !important;
-                height: 72px !important;
-            }
-            /* 手机端标签字体缩小 */
+            .tier-row { grid-template-columns: 55px 1fr; padding: 5px; }
+            .tier-label-box span { font-size: 1.5rem !important; }
+            .drag-zone .char-card { width: 75px !important; height: 60px !important; }
+            .char-card { width: 90px !important; height: 72px !important; }
+            
+            /* 手机端标签高度补正 */
             .custom-tag {
-                font-size: 12px !important;
-                padding: 1px 4px !important;
+                font-size: 11px !important;
+                height: 16px !important;
+                padding: 0 4px !important;
+                min-width: 30px !important;
             }
             .drag-zone .custom-tag {
-                font-size: 10px !important;
+                font-size: 9px !important;
+                height: 14px !important;
             }
-            /* 版头文字堆叠 */
-            .mobile-stack {
-                flex-direction: column;
-                align-items: flex-start !important;
-                gap: 0.5rem !important;
-            }
+            .mobile-stack { flex-direction: column; align-items: flex-start !important; gap: 0.5rem !important; }
         }
 
-        [contenteditable="true"]:focus {
-            outline: none;
-            background: rgba(0, 242, 255, 0.2);
-            border-radius: 2px;
-        }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        [contenteditable="true"]:focus { outline: none; background: rgba(0, 242, 255, 0.2); }
     </style>
 </head>
 <body class="p-2 md:p-4">
@@ -151,7 +148,6 @@
     <!-- 保存图片区域 -->
     <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
         
-        <!-- 版头：添加了 mobile-stack 类实现手机端堆叠 -->
         <div class="mb-4 pb-4 border-b border-gray-800">
             <h1 contenteditable="true" class="text-3xl md:text-5xl font-black italic text-white uppercase tracking-tighter leading-none mb-3">
                 【异环】节奏榜
@@ -168,13 +164,11 @@
                 <div class="flex flex-wrap items-center gap-1">
                     <span class="text-gray-500 italic shrink-0">异环wiki攻略站：</span>
                     <a href="https://www.gamekee.com/yh/?source=ai" target="_blank" class="text-[#00f2ff] hover:underline break-all">https://www.gamekee.com/yh/</a>
-                    <!-- data-html2canvas-ignore 会让这个元素在保存图片时消失 -->
                     <span data-html2canvas-ignore class="ml-0 md:ml-2 text-gray-300 italic text-[10px] md:text-xs">tip：标签≤5个字也可删除，加速环境下页面加载更快</span>
                 </div>
             </div>
         </div>
 
-        <!-- 梯度列表 -->
         <div id="tier-rows-container">
             <div class="tier-row">
                 <div class="tier-label-box"><span contenteditable="true" class="text-4xl font-black italic text-[#ff2d55] font-['Orbitron']">T0</span></div>
@@ -242,17 +236,21 @@
             const pool = document.getElementById('character-pool');
             const card = document.createElement('div');
             card.className = 'char-card';
+            
             const tag = document.createElement('div');
             tag.className = 'custom-tag';
             tag.contentEditable = true;
             tag.innerText = '标签';
+            
             tag.addEventListener('compositionstart', () => { isComposing = true; });
             tag.addEventListener('compositionend', (e) => { isComposing = false; handleTagLogic(e.target); });
             tag.addEventListener('input', (e) => { if (!isComposing) handleTagLogic(e.target); });
             tag.addEventListener('blur', (e) => handleTagLogic(e.target));
+
             const avatarWrap = document.createElement('div');
             avatarWrap.className = 'char-avatar-wrapper';
             avatarWrap.innerHTML = `<img src="${imgSrc}" class="char-img">`;
+
             card.appendChild(tag);
             card.appendChild(avatarWrap);
             card.oncontextmenu = e => { e.preventDefault(); if(confirm('确认移除？')) card.remove(); };
@@ -278,7 +276,16 @@
         }
 
         document.querySelectorAll('.drag-zone').forEach(zone => {
-            new Sortable(zone, { group: 'shared', animation: 150, ghostClass: 'opacity-10', forceFallback: true });
+            new Sortable(zone, { 
+                group: 'shared', 
+                animation: 150, 
+                ghostClass: 'opacity-10', 
+                forceFallback: true,
+                onEnd: function() {
+                    // 拖拽结束后强制刷新所有标签状态，防止克隆出来的节点UI异常
+                    document.querySelectorAll('.custom-tag').forEach(tag => handleTagLogic(tag));
+                }
+            });
         });
 
         async function exportImage() {
@@ -287,7 +294,12 @@
                 backgroundColor: '#0a0a0a', 
                 scale: 2, 
                 useCORS: true,
-                logging: false
+                logging: false,
+                // 解决 iOS/Chrome 移动端可能出现的偏移
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
             });
             const link = document.createElement('a');
             link.download = `异环节奏榜_${Date.now()}.png`;
