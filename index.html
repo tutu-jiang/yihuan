@@ -22,7 +22,7 @@
             user-select: none;
         }
 
-        /* 梯度行高度管控 */
+        /* --- PC 端布局样式 --- */
         .tier-row {
             display: grid;
             grid-template-columns: 80px 1fr;
@@ -41,7 +41,6 @@
             border-right: 1px dashed #333;
         }
 
-        /* 角色卡片基础尺寸 (角色库用) */
         .char-card {
             width: 192px;
             height: 155px;
@@ -52,7 +51,6 @@
             background: transparent !important;
         }
 
-        /* 梯度行内等比缩小 */
         .drag-zone .char-card {
             width: 120px;
             height: 97px;
@@ -73,7 +71,6 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
-        /* 标签样式：大尺寸 + 自动隐藏逻辑 */
         .custom-tag {
             position: absolute;
             top: 2px;
@@ -92,18 +89,8 @@
             line-height: 1.1;
         }
 
-        /* 缩小版标签 */
-        .drag-zone .custom-tag {
-            font-size: 16px;
-            padding: 1px 6px;
-        }
-
-        /* 空标签隐藏UI */
-        .custom-tag.is-empty {
-            background: transparent !important;
-            box-shadow: none !important;
-            clip-path: none !important;
-        }
+        .drag-zone .custom-tag { font-size: 16px; padding: 1px 6px; }
+        .custom-tag.is-empty { background: transparent !important; box-shadow: none !important; clip-path: none !important; }
 
         .drag-zone {
             display: flex;
@@ -113,31 +100,63 @@
             align-items: center;
         }
 
+        /* --- 手机端适配 (屏幕宽度 < 640px) --- */
+        @media (max-width: 640px) {
+            .tier-row {
+                grid-template-columns: 55px 1fr; /* 缩小梯度标签宽度 */
+                padding: 5px;
+            }
+            .tier-label-box span {
+                font-size: 1.5rem !important; /* 缩小 T0 文字 */
+            }
+            /* 手机端梯度内头像等比缩小至 75px */
+            .drag-zone .char-card {
+                width: 75px !important;
+                height: 60px !important;
+            }
+            /* 手机端角色池头像缩小至 90px */
+            .char-card {
+                width: 90px !important;
+                height: 72px !important;
+            }
+            /* 手机端标签字体缩小 */
+            .custom-tag {
+                font-size: 12px !important;
+                padding: 1px 4px !important;
+            }
+            .drag-zone .custom-tag {
+                font-size: 10px !important;
+            }
+            /* 版头文字堆叠 */
+            .mobile-stack {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.5rem !important;
+            }
+        }
+
         [contenteditable="true"]:focus {
             outline: none;
             background: rgba(0, 242, 255, 0.2);
             border-radius: 2px;
         }
-
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body class="p-2 md:p-4">
 
-    <!-- 隐藏的手动上传控件 -->
     <input type="file" id="manual-upload" accept="image/*" multiple class="hidden" onchange="handleManualUpload(this)">
 
-    <!-- 图片抓取区域 (保存图片时仅包含此处内容) -->
-    <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-6 shadow-2xl border border-gray-900">
+    <!-- 保存图片区域 -->
+    <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
         
-        <!-- 版头布局 -->
+        <!-- 版头：添加了 mobile-stack 类实现手机端堆叠 -->
         <div class="mb-4 pb-4 border-b border-gray-800">
-            <!-- 修改点1：大标题 -->
-            <h1 contenteditable="true" class="text-5xl font-black italic text-white uppercase tracking-tighter leading-none mb-2">
+            <h1 contenteditable="true" class="text-3xl md:text-5xl font-black italic text-white uppercase tracking-tighter leading-none mb-3">
                 【异环】节奏榜
             </h1>
-            <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+            <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-xs md:text-sm mobile-stack">
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 italic">作者：</span>
                     <span contenteditable="true" class="border-b border-gray-700 pb-px">点击修改</span>
@@ -146,11 +165,11 @@
                     <span class="text-gray-600">更新时间：</span>
                     <span id="current-date" contenteditable="true">2026.05.08</span>
                 </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-gray-500 italic">异环wiki攻略站：</span>
-                    <a href="https://www.gamekee.com/yh/?source=ai" target="_blank" class="text-[#00f2ff] hover:underline">https://www.gamekee.com/yh/</a>
-                    <!-- 修改点2：Tip文案及颜色 -->
-                    <span class="ml-2 text-gray-300 italic text-xs">tip：标签≤5个字也可删除，加速环境下页面加载更快</span>
+                <div class="flex flex-wrap items-center gap-1">
+                    <span class="text-gray-500 italic shrink-0">异环wiki攻略站：</span>
+                    <a href="https://www.gamekee.com/yh/?source=ai" target="_blank" class="text-[#00f2ff] hover:underline break-all">https://www.gamekee.com/yh/</a>
+                    <!-- data-html2canvas-ignore 会让这个元素在保存图片时消失 -->
+                    <span data-html2canvas-ignore class="ml-0 md:ml-2 text-gray-300 italic text-[10px] md:text-xs">tip：标签≤5个字也可删除，加速环境下页面加载更快</span>
                 </div>
             </div>
         </div>
@@ -176,32 +195,30 @@
         </div>
     </div>
 
-    <!-- 角色库区域 (不在图片保存范围内) -->
+    <!-- 角色库 -->
     <div class="max-w-[1400px] mx-auto mt-6 p-4 bg-[#050505] border border-gray-800">
         <div class="mb-3 flex justify-between items-center">
             <div class="text-[10px] font-bold text-gray-600 tracking-widest uppercase flex items-center gap-2">
                 <div class="w-1.5 h-3 bg-cyan-800"></div> 角色池 / CHARACTER POOL
             </div>
-            <button onclick="document.getElementById('manual-upload').click()" class="bg-gray-800 hover:bg-gray-700 text-cyan-500 px-4 py-1 text-[11px] border border-cyan-900 transition-all font-bold">
-                + 手动上传新头像
+            <button onclick="document.getElementById('manual-upload').click()" class="bg-gray-800 hover:bg-gray-700 text-cyan-500 px-4 py-1 text-[10px] md:text-[11px] border border-cyan-900 transition-all font-bold">
+                + 手动上传
             </button>
         </div>
-        <div id="character-pool" class="drag-zone min-h-[160px] bg-[#0a0a0a] p-2 border border-dashed border-gray-800"></div>
+        <div id="character-pool" class="drag-zone min-h-[120px] bg-[#0a0a0a] p-2 border border-dashed border-gray-800"></div>
     </div>
 
-    <!-- 保存按钮 -->
-    <div class="fixed bottom-6 right-6">
-        <button onclick="exportImage()" class="px-8 py-3 bg-[#00f2ff] text-black font-black italic text-lg shadow-[4px_4px_0_#fff] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+    <div class="fixed bottom-6 right-6 z-50">
+        <button onclick="exportImage()" class="px-6 md:px-8 py-3 bg-[#00f2ff] text-black font-black italic text-base md:text-lg shadow-[4px_4px_0_#fff] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
             保存图片
         </button>
     </div>
 
     <script>
-        let isComposing = false; // IME锁
+        let isComposing = false;
 
         window.onload = function() {
             const pool = document.getElementById('character-pool');
-            // 自动加载 img 文件夹
             for (let i = 1; i <= 100; i++) {
                 const img = new Image();
                 img.src = `img/${i}.png`;
@@ -211,7 +228,6 @@
             document.getElementById('current-date').innerText = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
         };
 
-        // 手动上传头像函数
         function handleManualUpload(input) {
             if (input.files) {
                 Array.from(input.files).forEach(file => {
@@ -222,54 +238,33 @@
             }
         }
 
-        // 创建角色卡片
         function createCard(imgSrc) {
             const pool = document.getElementById('character-pool');
             const card = document.createElement('div');
             card.className = 'char-card';
-            
             const tag = document.createElement('div');
             tag.className = 'custom-tag';
             tag.contentEditable = true;
             tag.innerText = '标签';
-            
-            // 绑定标签输入逻辑
             tag.addEventListener('compositionstart', () => { isComposing = true; });
-            tag.addEventListener('compositionend', (e) => { 
-                isComposing = false; 
-                handleTagLogic(e.target); 
-            });
-            tag.addEventListener('input', (e) => { 
-                if (!isComposing) handleTagLogic(e.target); 
-            });
+            tag.addEventListener('compositionend', (e) => { isComposing = false; handleTagLogic(e.target); });
+            tag.addEventListener('input', (e) => { if (!isComposing) handleTagLogic(e.target); });
             tag.addEventListener('blur', (e) => handleTagLogic(e.target));
-
             const avatarWrap = document.createElement('div');
             avatarWrap.className = 'char-avatar-wrapper';
             avatarWrap.innerHTML = `<img src="${imgSrc}" class="char-img">`;
-
             card.appendChild(tag);
             card.appendChild(avatarWrap);
-            
-            card.oncontextmenu = e => { e.preventDefault(); if(confirm('确认从编辑器中移除？')) card.remove(); };
+            card.oncontextmenu = e => { e.preventDefault(); if(confirm('确认移除？')) card.remove(); };
             pool.appendChild(card);
         }
 
-        // 处理标签UI和限制
         function handleTagLogic(el) {
             const text = el.innerText.trim();
-
-            // 1. 自动显示/隐藏背景UI
-            if (text === "") {
-                el.classList.add('is-empty');
-            } else {
-                el.classList.remove('is-empty');
-            }
-
-            // 2. 限制5个字符
+            if (text === "") el.classList.add('is-empty');
+            else el.classList.remove('is-empty');
             if (el.innerText.length > 5) {
                 el.innerText = el.innerText.substring(0, 5);
-                // 修正光标到最后
                 const range = document.createRange();
                 const sel = window.getSelection();
                 if (el.childNodes.length > 0) {
@@ -283,12 +278,7 @@
         }
 
         document.querySelectorAll('.drag-zone').forEach(zone => {
-            new Sortable(zone, { 
-                group: 'shared', 
-                animation: 150, 
-                ghostClass: 'opacity-10',
-                forceFallback: true
-            });
+            new Sortable(zone, { group: 'shared', animation: 150, ghostClass: 'opacity-10', forceFallback: true });
         });
 
         async function exportImage() {
