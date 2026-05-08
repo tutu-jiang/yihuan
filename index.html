@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【异环】节奏榜编辑器 - 强力对齐版</title>
+    <title>【异环】节奏榜编辑器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Noto+Sans+SC:wght@900&display=swap');
 
@@ -68,7 +67,7 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
-        /* --- 强力修复：标签文字大幅度上移 --- */
+        /* --- 标签样式 --- */
         .custom-tag {
             position: absolute;
             top: 2px;
@@ -82,7 +81,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: visible; /* 允许文字在渲染位移时溢出而不被切断 */
+            transition: all 0.2s;
         }
 
         .tag-text {
@@ -95,16 +94,12 @@
             width: 100%;
             display: block;
             outline: none;
-            
-            /* 使用相对定位进行强力垂直补偿 */
-            position: relative;
-            top: -6px; /* 重点：大幅度上移 */
-            
             height: 32px;
-            line-height: 32px;
+            line-height: 28px; 
+            margin-top: -2px; 
         }
 
-        /* 梯度行内的缩小版标签 */
+        /* 缩小版规格 */
         .drag-zone .custom-tag {
             height: 20px;
             min-width: 40px;
@@ -113,9 +108,9 @@
         }
         .drag-zone .tag-text {
             font-size: 13px;
-            line-height: 20px;
+            line-height: 18px;
             height: 20px;
-            top: -4px; /* 缩小版同步上移 */
+            margin-top: -1px;
         }
 
         .custom-tag.is-empty { background: transparent !important; box-shadow: none !important; }
@@ -128,7 +123,7 @@
             align-items: center;
         }
 
-        /* --- 手机端补正 --- */
+        /* --- 响应式补正 --- */
         @media (max-width: 640px) {
             .tier-row { grid-template-columns: 55px 1fr; padding: 5px; }
             .tier-label-box span { font-size: 1.5rem !important; }
@@ -143,12 +138,12 @@
             }
             .tag-text {
                 font-size: 10px !important;
-                line-height: 16px !important;
+                line-height: 14px !important;
                 height: 16px !important;
-                top: -3px !important; /* 手机端也强力上移 */
+                margin-top: -1px !important;
             }
             .drag-zone .custom-tag { height: 14px !important; }
-            .drag-zone .tag-text { line-height: 14px !important; height: 14px !important; font-size: 9px !important; top: -3px !important;}
+            .drag-zone .tag-text { line-height: 12px !important; height: 14px !important; font-size: 9px !important;}
             .mobile-stack { flex-direction: column; align-items: flex-start !important; gap: 0.5rem !important; }
         }
 
@@ -159,7 +154,7 @@
 
     <input type="file" id="manual-upload" accept="image/*" multiple class="hidden" onchange="handleManualUpload(this)">
 
-    <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
+    <div class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
         
         <!-- 版头布局 -->
         <div class="mb-4 pb-4 border-b border-gray-800">
@@ -178,7 +173,7 @@
                 <div class="flex flex-wrap items-center gap-1">
                     <span class="text-gray-500 italic shrink-0">异环wiki攻略站：</span>
                     <a href="https://www.gamekee.com/yh/?source=ai" target="_blank" class="text-[#00f2ff] hover:underline break-all">https://www.gamekee.com/yh/</a>
-                    <span data-html2canvas-ignore class="ml-0 md:ml-2 text-gray-300 italic text-[10px] md:text-xs">tip：标签≤5个字也可删除，加速环境下页面加载更快</span>
+                    <span class="ml-0 md:ml-2 text-gray-300 italic text-[10px] md:text-xs">tip：标签≤5个字也可删除，加速环境下页面加载更快</span>
                 </div>
             </div>
         </div>
@@ -215,12 +210,6 @@
             </button>
         </div>
         <div id="character-pool" class="drag-zone min-h-[120px] bg-[#0a0a0a] p-2 border border-dashed border-gray-800"></div>
-    </div>
-
-    <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="exportImage()" class="px-6 md:px-8 py-3 bg-[#00f2ff] text-black font-black italic text-base md:text-lg shadow-[4px_4px_0_#fff] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
-            保存图片
-        </button>
     </div>
 
     <script>
@@ -273,6 +262,7 @@
 
             card.appendChild(tagContainer);
             card.appendChild(avatarWrap);
+            
             card.oncontextmenu = e => { e.preventDefault(); if(confirm('确认移除？')) card.remove(); };
             pool.appendChild(card);
         }
@@ -309,27 +299,6 @@
                 }
             });
         });
-
-        async function exportImage() {
-            const area = document.getElementById('capture-area');
-            if (document.activeElement) document.activeElement.blur();
-
-            const canvas = await html2canvas(area, { 
-                backgroundColor: '#0a0a0a', 
-                scale: 2, 
-                useCORS: true,
-                logging: false,
-                scrollY: -window.scrollY,
-                scrollX: 0,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.offsetHeight
-            });
-            
-            const link = document.createElement('a');
-            link.download = `异环节奏榜_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
     </script>
 </body>
 </html>
