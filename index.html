@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【异环】节奏榜编辑器 - 终极修复版</title>
+    <title>【异环】节奏榜编辑器 - 终极对齐版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -68,7 +68,7 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
-        /* --- 终极修复：标签样式（改用 skew 替代 clip-path） --- */
+        /* --- 修正错位：双层斜切标签 --- */
         .custom-tag {
             position: absolute;
             top: 2px;
@@ -77,31 +77,31 @@
             height: 32px;
             min-width: 60px;
             background: var(--yh-cyan);
-            /* 使用斜切代替裁切，渲染最稳 */
             transform: skewX(-15deg); 
             box-shadow: -2px 2px 0 #000;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
         }
 
-        /* 内部文字取消斜切，保持正体 */
         .tag-text {
             transform: skewX(15deg);
             color: #000;
             font-weight: 900;
             font-size: 20px;
             white-space: nowrap;
-            /* 严格控制行高，防止偏移 */
-            line-height: 32px; 
-            height: 32px;
             text-align: center;
             width: 100%;
             display: block;
             outline: none;
+            /* 关键点：减小行高并添加负边距，强制文字向上微移 */
+            height: 32px;
+            line-height: 28px; 
+            margin-top: -2px; 
         }
 
-        /* 缩小版标签规格 */
+        /* 缩小版规格 */
         .drag-zone .custom-tag {
             height: 20px;
             min-width: 40px;
@@ -110,11 +110,11 @@
         }
         .drag-zone .tag-text {
             font-size: 13px;
-            line-height: 20px;
+            line-height: 18px;
             height: 20px;
+            margin-top: -1px;
         }
 
-        /* 空标签彻底隐藏 */
         .custom-tag.is-empty { background: transparent !important; box-shadow: none !important; }
 
         .drag-zone {
@@ -140,15 +140,16 @@
             }
             .tag-text {
                 font-size: 10px !important;
-                line-height: 16px !important;
+                line-height: 14px !important;
                 height: 16px !important;
+                margin-top: -1px !important;
             }
             .drag-zone .custom-tag { height: 14px !important; }
-            .drag-zone .tag-text { line-height: 14px !important; height: 14px !important; font-size: 9px !important;}
+            .drag-zone .tag-text { line-height: 12px !important; height: 14px !important; font-size: 9px !important;}
             .mobile-stack { flex-direction: column; align-items: flex-start !important; gap: 0.5rem !important; }
         }
 
-        [contenteditable="true"]:focus { outline: none; background: rgba(0, 242, 255, 0.1); }
+        [contenteditable="true"]:focus { outline: none; background: rgba(0, 242, 255, 0.1); border-radius: 2px; }
     </style>
 </head>
 <body class="p-2 md:p-4">
@@ -157,7 +158,7 @@
 
     <div id="capture-area" class="max-w-[1400px] mx-auto bg-[#0a0a0a] p-4 md:p-6 shadow-2xl border border-gray-900">
         
-        <!-- 版头 -->
+        <!-- 版头：还原布局 + 文案微调 -->
         <div class="mb-4 pb-4 border-b border-gray-800">
             <h1 contenteditable="true" class="text-3xl md:text-5xl font-black italic text-white uppercase tracking-tighter leading-none mb-3">
                 【异环】节奏榜
@@ -315,7 +316,6 @@
                 scale: 2, 
                 useCORS: true,
                 logging: false,
-                // 强制修正由于滚动造成的偏移
                 scrollY: -window.scrollY,
                 scrollX: 0,
                 windowWidth: document.documentElement.offsetWidth,
